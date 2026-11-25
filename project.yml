@@ -1,0 +1,84 @@
+name: Projector
+options:
+  bundleIdPrefix: com.joeblau
+  deploymentTarget:
+    iOS: "18.0"
+    macOS: "15.0"
+settings:
+  base:
+    DEVELOPMENT_TEAM: K78G42H4U2
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "5.0"
+    MAC_HOST: ""
+targets:
+  ProjectorPhone:
+    type: application
+    platform: iOS
+    sources: [Shared, PhoneShared, PhoneApp]
+    entitlements:
+      path: PhoneApp/ProjectorPhone.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.joeblau.projector]
+    info:
+      path: PhoneApp/Info.plist
+      properties:
+        CFBundleDisplayName: Projector
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        MacHost: $(MAC_HOST)
+        NSLocalNetworkUsageDescription: Streams your phone's sensors to the Projector app on your Mac.
+        NSBonjourServices: [_phoneproj._udp, _phoneprojv._tcp]
+        NSMotionUsageDescription: Streams device motion to your Mac.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.joeblau.projector
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - target: ProjectorBroadcast
+        embed: true
+  ProjectorBroadcast:
+    type: app-extension
+    platform: iOS
+    sources: [Shared, PhoneShared, BroadcastExtension]
+    entitlements:
+      path: BroadcastExtension/ProjectorBroadcast.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.joeblau.projector]
+    info:
+      path: BroadcastExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Projector Broadcast
+        MacHost: $(MAC_HOST)
+        NSLocalNetworkUsageDescription: Streams your phone's sensors to the Projector app on your Mac.
+        NSBonjourServices: [_phoneproj._udp, _phoneprojv._tcp]
+        NSMotionUsageDescription: Streams device motion to your Mac.
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.broadcast-services-upload
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SampleHandler
+          RPBroadcastProcessMode: RPBroadcastProcessModeSampleBuffer
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.joeblau.projector.broadcast
+  ProjectorMac:
+    type: application
+    platform: macOS
+    sources: [Shared, MacApp]
+    entitlements:
+      path: MacApp/ProjectorMac.entitlements
+      properties:
+        com.apple.security.device.camera: true
+    info:
+      path: MacApp/Info.plist
+      properties:
+        CFBundleDisplayName: Projector
+        LSApplicationCategoryType: public.app-category.utilities
+        NSLocalNetworkUsageDescription: Receives sensor telemetry from your iPhone.
+        NSCameraUsageDescription: Mirrors the screen of an iPhone or iPad connected by cable.
+        NSBonjourServices: [_phoneproj._udp, _phoneprojv._tcp]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.joeblau.projector.mac
+        PRODUCT_NAME: Projector
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: YES
